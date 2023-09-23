@@ -100,6 +100,7 @@ unsigned _stdcall CTCPNet::ThreadProc(void *lpvoid)
             exit(1);
         }
         int maxi = pthis->m_connectnum - 1;
+
         //看看位图里有没有连接事件  
         char cli_ip[45] = "";
         if (FD_ISSET(pthis->m_sock, &pthis->m_reset)) {

@@ -52,8 +52,8 @@ bool CTCPNet::InitNetWork()
      addrserver.sin_addr.S_un.S_addr = 0;
       //addrserver.sin_addr.S_un.S_addr = inet_addr("192.168.137.1");
       //InetPtonW(AF_INET, L"192.168.137.1", &addrserver.sin_addr);
-     if(SOCKET_ERROR == bind(m_sock,( const sockaddr *)&addrserver,sizeof(addrserver)))
-     {
+     if(SOCKET_ERROR == ::bind(m_sock,( const sockaddr *)&addrserver,sizeof(addrserver)))
+     { 
         // int n = GetLastError();
          UnInitNetWork();
          return false;

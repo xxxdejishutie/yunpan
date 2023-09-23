@@ -597,11 +597,14 @@ void TCPkernel::dealtext(char *buf,SOCKET sock)
 	{
 		if (m_pprotomap[i].n_type == *buf)
 		{
-			(this->*m_pprotomap[i].fun)(buf, sock);
-			//auto f = std::bind(m_pprotomap[i].fun, this, buf, sock);
-			//function<void()> fun(f);
-			//9.23 加入线程池处理，循环队列，无锁数组，采用function和bind封装
+			//处理函数
+			//(this->*m_pprotomap[i].fun)(buf, sock);
 
+			//使用bind 函数 和function函数封装处理函数
+			auto f = std::bind(m_pprotomap[i].fun, this, buf, sock);
+			function<void()> fun(f);
+			fun();
+			//9.23 加入线程池处理，循环队列，无锁数组
 			return;
 		}
 		if (m_pprotomap[i].n_type == 0 && m_pprotomap[i].fun == 0)

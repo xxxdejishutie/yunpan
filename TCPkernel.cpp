@@ -598,7 +598,7 @@ void TCPkernel::dealtext(char *buf,SOCKET sock)
 		if (m_pprotomap[i].n_type == *buf)
 		{
 			(this->*m_pprotomap[i].fun)(buf, sock);
-			//9.23 加入线程池处理
+			//9.23 加入线程池处理，循环队列，无锁数组，采用function和bind封装
 
 			return;
 		}

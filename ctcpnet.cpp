@@ -1,5 +1,5 @@
 ﻿#include "ctcpnet.h"
-#include<iostream>.
+#include<iostream>
 #include<WS2tcpip.h>
 using namespace std;
 

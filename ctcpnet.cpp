@@ -70,16 +70,17 @@ bool CTCPNet::InitNetWork()
      FD_SET(m_sock, &m_allset);
      //4.创建线程池
      m_connectnum++;
-      m_hThread = (HANDLE)_beginthreadex(0,0,&ThreadProc,this,0,0);
+     m_hThread = (HANDLE)_beginthreadex(0,0,&ThreadProc,this,0,0);
       if(m_hThread)
            m_lstThread.push_back(m_hThread);
-
+      
 
     return true;
 }
 
 unsigned _stdcall CTCPNet::ThreadProc(void *lpvoid)
 {
+    //terminate();
     CTCPNet *pthis= (CTCPNet*)lpvoid;
     unsigned dwthreadid;
     while(pthis->m_bFlagQuit)
@@ -94,7 +95,9 @@ unsigned _stdcall CTCPNet::ThreadProc(void *lpvoid)
             return 0;
         }
         nready = select(pthis->m_connectnum + 1, &pthis->m_reset, NULL, NULL, NULL);
-        std::cout << "nready" << nready << endl;
+        
+       
+        //std::cout << "nready" << nready << endl;
         if (nready < 0) {
             fputs("select error\n", stderr);
             exit(1);
@@ -108,10 +111,10 @@ unsigned _stdcall CTCPNet::ThreadProc(void *lpvoid)
             int cliaddr_len = sizeof(cliaddr);
             //三次握手接收连接 返回connfd ，accept不阻塞 
             SOCKET connfd = accept(pthis->m_sock, (struct sockaddr*)&cliaddr, &cliaddr_len);
-            std::printf("connfd:%d\n", connfd);
+           /* std::printf("connfd:%d\n", connfd);
             std::printf("received from %s at PORT %d\n",
                 inet_ntop(AF_INET, &cliaddr.sin_addr, cli_ip, sizeof(cli_ip)),
-                ntohs(cliaddr.sin_port));
+                ntohs(cliaddr.sin_port));*/
             //client数组记录下connfd 
             int i;
             for (i = 0; i < FD_SETSIZE; i++)
@@ -147,7 +150,7 @@ unsigned _stdcall CTCPNet::ThreadProc(void *lpvoid)
             // 这个if一般不会进去，因为 0~maxi的数据都是有效的 
             if ((sockfd = pthis->m_arrClient[i]) < 0)
                 continue;
-            printf("sockfd:%d\n", sockfd);
+            //printf("sockfd:%d\n", sockfd);
             //看看位图里有没有客户端发送数据事件 
            int nPackSize;
             if (FD_ISSET(sockfd, &pthis->m_reset)) {
@@ -163,11 +166,11 @@ unsigned _stdcall CTCPNet::ThreadProc(void *lpvoid)
                 }
                 else {
                     //有数据发送 
-                    char *pszbuf = new char[nPackSize];
+                    shared_ptr<char[]> pszbuf(new char[nPackSize]);
                     int noffset = 0;
                     while (nPackSize)
                     {
-                        int nRecvNum = recv(sockfd, pszbuf + noffset, nPackSize, 0);
+                        int nRecvNum = recv(sockfd, pszbuf.get() + noffset, nPackSize, 0);
                         noffset += nRecvNum;
                         nPackSize -= nRecvNum;
                     }
@@ -212,7 +215,7 @@ void CTCPNet::RecvData()
     SOCKET sockWaiter = m_mapIdToSock[GetCurrentThreadId()];
     int nPackSize;
     int nRecvNum;
-    char *pszbuf = NULL;
+    char* pszbuf = NULL;
     int noffset ;
     while(m_bFlagQuit)
     {
@@ -235,11 +238,9 @@ void CTCPNet::RecvData()
             noffset += nRecvNum;
             nPackSize -= nRecvNum;
         }
+
         //处理数据
-        m_pkernel->dealtext(pszbuf,sockWaiter);
-
-
-        
+        //m_pkernel->dealtext(pszbuf,sockWaiter);
 
         delete []pszbuf;
         pszbuf = NULL;

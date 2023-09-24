@@ -1,5 +1,6 @@
 ﻿#include<iostream>
 #include"TCPkernel.h"
+//#include"C:\Program Files (x86)\Visual Leak Detector\include\vld.h"//查寻内存泄漏的软件
 using namespace std;
 int main()
 {
@@ -13,5 +14,7 @@ int main()
 	}
 
 	system("pause");
+	delete k;
+
 	return 0;
 }

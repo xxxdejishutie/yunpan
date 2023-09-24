@@ -7,6 +7,7 @@ CMySql::CMySql(void)
     如果你传入的参数是NULL指针，它将自动为你分配一个MYSQL对象，
     如果这个MYSQL对象是它自动分配的，那么在调用mysql_close的时候，会释放这个对象*/
     sock = new MYSQL;
+    //
     mysql_init(sock );  
     mysql_set_character_set(sock,"gb2312"); //gb2312 中华人民共和国简体字标准
 }

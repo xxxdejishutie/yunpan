@@ -23,6 +23,7 @@
     <ClInclude Include="ctcpnet.h" />
     <ClInclude Include="Ikernel.h" />
     <ClInclude Include="Inet.h" />
+    <ClInclude Include="mythreadpool.h" />
     <ClInclude Include="packdef.h" />
     <ClInclude Include="TCPkernel.h" />
   </ItemGroup>
@@ -127,7 +128,8 @@
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>libmysql.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>libmysql.lib;vld.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>C:\Program Files (x86)\Visual Leak Detector\lib\Win64;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">

@@ -41,10 +41,10 @@ void TCPkernel::Closesqlandnet()
 
 
 //注册登录包
-void TCPkernel::do_REGISTER_RQ(char* buf,SOCKET sock)
+void TCPkernel::do_REGISTER_RQ(shared_ptr<char[]>  buf,SOCKET sock)
 {
 	//请求包，转化成结构体
-	STRU_REGISTER_RQ* p = (STRU_REGISTER_RQ*)buf;
+	STRU_REGISTER_RQ* p = (STRU_REGISTER_RQ*)buf.get();
 
 	//请求回复包
 	STRU_REGISTER_RS rs;
@@ -70,12 +70,17 @@ void TCPkernel::do_REGISTER_RQ(char* buf,SOCKET sock)
 	}
 
 	m_pinet->SendData(sock, (char*)&rs, sizeof(rs));//发送回复信息
+	
+
+	//释放share_ptr指针
+	if(buf.use_count() >= 1)
+		buf.reset();
 }
 
 //处理登录请求包
-void TCPkernel::do_LOGIN_RQ(char* buf, SOCKET sock)
+void TCPkernel::do_LOGIN_RQ(shared_ptr<char[]>  buf, SOCKET sock)
 {
-	STRU_LOGIN_RQ* rq = (STRU_LOGIN_RQ*)buf;
+	STRU_LOGIN_RQ* rq = (STRU_LOGIN_RQ*)buf.get();
 	list<string> lis;
 	//校验密码是否正确
 
@@ -108,12 +113,17 @@ void TCPkernel::do_LOGIN_RQ(char* buf, SOCKET sock)
 
 	m_pinet->SendData(sock, (char*)&rs, sizeof(rs));
 
+	//释放shared_ptr指针
+	if (buf.use_count() >= 1)
+	{
+		buf.reset();
+	}
 }
 
 //处理获取文件列表包
-void TCPkernel::do_GETFILELIST_RQ(char* buf, SOCKET sock)
+void TCPkernel::do_GETFILELIST_RQ(shared_ptr<char[]>  buf, SOCKET sock)
 {
-	STRU_GETFILELIST_RQ* rq = (STRU_GETFILELIST_RQ*)buf;
+	STRU_GETFILELIST_RQ* rq = (STRU_GETFILELIST_RQ*)buf.get();
 	list<string> lis;
 	//查询这个id下的所有文件
 	STRU_GETFILELIST_RS rs;
@@ -154,14 +164,19 @@ void TCPkernel::do_GETFILELIST_RQ(char* buf, SOCKET sock)
 
 	}
 
+	//释放shared_ptr指针
+	if (buf.use_count() >= 1)
+	{
+		buf.reset();
+	}
 }
 
 
 
 //处理上传文件信息包，即客户端点击上传后发送来得第一个包
-void TCPkernel::do_UPLOAD_FILEINFO(char* buf, SOCKET sock)
+void TCPkernel::do_UPLOAD_FILEINFO(shared_ptr<char[]>  buf, SOCKET sock)
 {
-	STRU_UPLOAD_FILEINFO_RQ* rq = (STRU_UPLOAD_FILEINFO_RQ*)buf;
+	STRU_UPLOAD_FILEINFO_RQ* rq = (STRU_UPLOAD_FILEINFO_RQ*)buf.get();
 	STRU_UPLOAD_FILEINFO_RS rs;
 	rs.m_lFileId = rq->m_lUserId;
 	strcpy_s(rs.m_szFileMD5, rq->m_szFileMD5);
@@ -294,11 +309,17 @@ void TCPkernel::do_UPLOAD_FILEINFO(char* buf, SOCKET sock)
 	//别人传过，秒传
 	//将文件记录在数据库中，开始上传
 
+	//释放shared_ptr指针
+	if (buf.use_count() >= 1)
+	{
+		buf.reset();
+	}
+
 }
 
 
 // 通过stat结构体 获得文件大小，单位字节
-int getFileSize1(const char* fileName) {
+int getFileSize1(const char*  fileName) {
 
 	if (fileName == NULL) {
 		return 0;
@@ -318,9 +339,9 @@ int getFileSize1(const char* fileName) {
 
 
 //处理上传文件内容得包
-void TCPkernel::do_UPLOAD_FILECONTENT_RQ(char* buf, SOCKET sock)
+void TCPkernel::do_UPLOAD_FILECONTENT_RQ(shared_ptr<char[]>  buf, SOCKET sock)
 {
-	STRU_UPLOAD_FILECONTENT_RQ* rq = (STRU_UPLOAD_FILECONTENT_RQ*)buf;
+	STRU_UPLOAD_FILECONTENT_RQ* rq = (STRU_UPLOAD_FILECONTENT_RQ*)buf.get();
 	uploadfileinfo* pupfile = m_mapfileiftofileinfo[rq->m_lFileId];
 
 
@@ -401,6 +422,12 @@ void TCPkernel::do_UPLOAD_FILECONTENT_RQ(char* buf, SOCKET sock)
 
 	}
 
+
+	//释放shared_ptr指针
+	if (buf.use_count() >= 1)
+	{
+		buf.reset();
+	}
 	//of.close();
 }
 
@@ -408,10 +435,10 @@ void TCPkernel::do_UPLOAD_FILECONTENT_RQ(char* buf, SOCKET sock)
 
 //文件下载模块
 	//下载文件请求
-void TCPkernel::do_DOWNLOAD_FILEINFO_RQ(char* buf, SOCKET sock)
+void TCPkernel::do_DOWNLOAD_FILEINFO_RQ(shared_ptr<char[]>  buf, SOCKET sock)
 {
 	//通过文件名和用户id查询文件id，文件地址
-	STRU_DOWNLOAD_FILEINFO_RQ* rq = (STRU_DOWNLOAD_FILEINFO_RQ*)buf;
+	STRU_DOWNLOAD_FILEINFO_RQ* rq = (STRU_DOWNLOAD_FILEINFO_RQ*)buf.get();
 	STRU_DOWNLOAD_FILEINFO_RS rs;
 	rs.bresult = true;
 	rs.m_nType = _DEF_PROTOCOL_DOWNLOAD_FILEINFO_RS;
@@ -471,6 +498,12 @@ void TCPkernel::do_DOWNLOAD_FILEINFO_RQ(char* buf, SOCKET sock)
 	//向客户端发送文件可以下载回复包
 	rs.m_lUserId = rq->m_lUserId;
 	m_pinet->SendData(sock, (char*)&rs, sizeof(rs));
+
+	//释放shared_ptr指针
+	if (buf.use_count() >= 1)
+	{
+		buf.reset();
+	}
 }
 
 
@@ -499,10 +532,10 @@ void TCPkernel::DOWNLOAD_FILECONTENT(char* buf, SOCKET sock)
 }
 
 //文件接收确认
-void TCPkernel::do_DOWNLOAD_FILECONTENT_RELY(char* buf, SOCKET sock)
+void TCPkernel::do_DOWNLOAD_FILECONTENT_RELY(shared_ptr<char[]>  buf, SOCKET sock)
 {
 	//接受来自客户的确认，已经接收到得消息
-	STRU_DOWNLOAD_FILECONTENT_RELY* rely = (STRU_DOWNLOAD_FILECONTENT_RELY*)buf;
+	STRU_DOWNLOAD_FILECONTENT_RELY* rely = (STRU_DOWNLOAD_FILECONTENT_RELY*)buf.get();
 	//更改文件结构体，文件已发送位置
 	pair<int, int> air;
 	air.first = rely->m_lUserId;
@@ -530,16 +563,21 @@ void TCPkernel::do_DOWNLOAD_FILECONTENT_RELY(char* buf, SOCKET sock)
 		DOWNLOAD_FILECONTENT((char*)m_mapfileinfoinstall[air], sock);
 	}
 	
+	//释放shared_ptr指针
+	if (buf.use_count() >= 1)
+	{
+		buf.reset();
+	}
 }
 
 
 
 //删除文件处理函数
-void TCPkernel::do_DELETE_FILE_RQ(char* buf, SOCKET sock)
+void TCPkernel::do_DELETE_FILE_RQ(shared_ptr<char[]>  buf, SOCKET sock)
 {
 	//查找用户这个文件是否存在，存在则文件引用计数减一，
 	//删除用户与该文件的映射
-	STRU_PROTOCOL_DELETE_FILE_RQ* rq = (STRU_PROTOCOL_DELETE_FILE_RQ*)buf;
+	STRU_PROTOCOL_DELETE_FILE_RQ* rq = (STRU_PROTOCOL_DELETE_FILE_RQ*)buf.get();
 	char strsql[1024] = { 0 };
 	STRU_PROTOCOL_DELETE_FILE_RS rs;
 	rs.m_nType = _DEF_PROTOCOL_DELETE_FILE_RS;
@@ -570,6 +608,13 @@ void TCPkernel::do_DELETE_FILE_RQ(char* buf, SOCKET sock)
 
 	m_pinet->SendData(sock, (char*)&rs, sizeof(rs));
 
+	
+
+	//释放shared_ptr指针
+	if (buf.use_count() >= 1)
+	{
+		buf.reset();
+	}
 }
 
 
@@ -590,20 +635,25 @@ protomap m_pprotomap[] = {
 
 };
 
-void TCPkernel::dealtext(char *buf,SOCKET sock)
+void TCPkernel::dealtext(shared_ptr<char[]> buf, SOCKET sock)
 {
 	int i = 0;
 	while (1)
 	{
-		if (m_pprotomap[i].n_type == *buf)
+		if (m_pprotomap[i].n_type == *(buf.get()))
 		{
 			//处理函数
 			//(this->*m_pprotomap[i].fun)(buf, sock);
 
 			//使用bind 函数 和function函数封装处理函数
+
 			auto f = std::bind(m_pprotomap[i].fun, this, buf, sock);
 			function<void()> fun(f);
 			fun();
+
+			//释放share_ptr;
+			if(buf.use_count() >= 1)
+				buf.reset();
 			//9.23 加入线程池处理，循环队列，无锁数组
 			return;
 		}

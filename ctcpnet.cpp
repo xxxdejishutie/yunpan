@@ -163,11 +163,11 @@ unsigned _stdcall CTCPNet::ThreadProc(void *lpvoid)
                 }
                 else {
                     //有数据发送 
-                    char *pszbuf = new char[nPackSize];
+                    shared_ptr<char[]> pszbuf(new char[nPackSize]);
                     int noffset = 0;
                     while (nPackSize)
                     {
-                        int nRecvNum = recv(sockfd, pszbuf + noffset, nPackSize, 0);
+                        int nRecvNum = recv(sockfd, pszbuf.get() + noffset, nPackSize, 0);
                         noffset += nRecvNum;
                         nPackSize -= nRecvNum;
                     }
@@ -212,7 +212,7 @@ void CTCPNet::RecvData()
     SOCKET sockWaiter = m_mapIdToSock[GetCurrentThreadId()];
     int nPackSize;
     int nRecvNum;
-    char *pszbuf = NULL;
+    char* pszbuf = NULL;
     int noffset ;
     while(m_bFlagQuit)
     {
@@ -235,11 +235,9 @@ void CTCPNet::RecvData()
             noffset += nRecvNum;
             nPackSize -= nRecvNum;
         }
+
         //处理数据
-        m_pkernel->dealtext(pszbuf,sockWaiter);
-
-
-        
+        //m_pkernel->dealtext(pszbuf,sockWaiter);
 
         delete []pszbuf;
         pszbuf = NULL;

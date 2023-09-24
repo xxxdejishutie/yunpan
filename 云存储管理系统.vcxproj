@@ -23,6 +23,7 @@
     <ClInclude Include="ctcpnet.h" />
     <ClInclude Include="Ikernel.h" />
     <ClInclude Include="Inet.h" />
+    <ClInclude Include="mythreadpool.h" />
     <ClInclude Include="packdef.h" />
     <ClInclude Include="TCPkernel.h" />
   </ItemGroup>

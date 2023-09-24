@@ -4,6 +4,7 @@ TCPkernel::TCPkernel()
 {
 	m_pinet = new CTCPNet(this);
 	m_pmysql = new CMySql;
+
 	strcpy_s(m_path, FILE_PATH);
 	CreateDirectoryA(FILE_PATH, 0);//不存在则，创建文件夹
 }
@@ -365,10 +366,14 @@ void TCPkernel::do_UPLOAD_FILECONTENT_RQ(shared_ptr<char[]>  buf, SOCKET sock)
 
 	if (rq->m_lUserId == pupfile->user_id && rq->m_lFileId == pupfile->file_id)
 	{
+		//写入文件时需要对资源更改
+		unique_lock<shared_mutex> s_u_lock(s_mutex);
+		//s_u_lock.lock();
 		//将文件内容写入文件
 
 		//4.17 文件写入时，先偏移到指定位置
 		// 5.28 不再偏移
+
 		if(DEBUG)
 			cout << " file pos now is " << pupfile->of->tellp() << endl;
 		
@@ -392,7 +397,7 @@ void TCPkernel::do_UPLOAD_FILECONTENT_RQ(shared_ptr<char[]>  buf, SOCKET sock)
 		int fd = rq->m_lFileId;
 		if (pupfile->fileposition == pupfile->filesize)
 		{
-
+			
 			//文件传输完毕
 			pupfile->of->close();
 			delete pupfile->of;
@@ -401,7 +406,7 @@ void TCPkernel::do_UPLOAD_FILECONTENT_RQ(shared_ptr<char[]>  buf, SOCKET sock)
 
 			cout << "结束时文件大小 ： " << a << endl;
 			//将这个节点删除,加入写锁
-			unique_lock<shared_mutex> slock(s_mutex);
+			//system("pause");
 			auto ite = m_mapfileiftofileinfo.begin();
 
 			while (ite != m_mapfileiftofileinfo.end())
@@ -492,6 +497,8 @@ void TCPkernel::do_DOWNLOAD_FILEINFO_RQ(shared_ptr<char[]>  buf, SOCKET sock)
 			pupfileinfo->fileposition = 0;
 			pupfileinfo->file_id = rs.m_lFileId;
 			strcpy_s(pupfileinfo->pfilepath, path1);
+
+
 			m_mapfileinfoinstall[air] = pupfileinfo;
 
 			rs.m_lPosition = 0;

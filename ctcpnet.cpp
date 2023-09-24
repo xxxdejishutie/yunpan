@@ -70,16 +70,17 @@ bool CTCPNet::InitNetWork()
      FD_SET(m_sock, &m_allset);
      //4.创建线程池
      m_connectnum++;
-      m_hThread = (HANDLE)_beginthreadex(0,0,&ThreadProc,this,0,0);
+     m_hThread = (HANDLE)_beginthreadex(0,0,&ThreadProc,this,0,0);
       if(m_hThread)
            m_lstThread.push_back(m_hThread);
-
+      
 
     return true;
 }
 
 unsigned _stdcall CTCPNet::ThreadProc(void *lpvoid)
 {
+    //terminate();
     CTCPNet *pthis= (CTCPNet*)lpvoid;
     unsigned dwthreadid;
     while(pthis->m_bFlagQuit)

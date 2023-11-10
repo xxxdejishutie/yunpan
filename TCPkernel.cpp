@@ -1,4 +1,6 @@
 #include "TCPkernel.h"
+#include"mythreadpool.h"
+
 TCPkernel* TCPkernel::m_tcpkernel = new TCPkernel; //单例模式 ehan模式
 TCPkernel::TCPkernel()
 {
@@ -648,6 +650,15 @@ protomap m_pprotomap[] = {
 
 };
 
+
+//template<class T>
+//void mythread_pool<T>::push_task(T task)
+//{
+//	//将任务添加到任务队列中,单线程
+//	task_queue.my_circul_queue<T>::push(move(task));
+//}
+
+
 void TCPkernel::dealtext(shared_ptr<char[]> buf, SOCKET sock)
 {
 	int i = 0;
@@ -659,15 +670,21 @@ void TCPkernel::dealtext(shared_ptr<char[]> buf, SOCKET sock)
 			//(this->*m_pprotomap[i].fun)(buf, sock);
 
 			//使用bind 函数 和function函数封装处理函数
-
-			auto f = std::bind(m_pprotomap[i].fun, this, buf, sock);
-			function<void()> fun(f);
-			fun();
-
-			//释放share_ptr;
-			if(buf.use_count() >= 1)
-				buf.reset();
 			//9.23 加入线程池处理，循环队列，无锁数组
+			//9.27直接使用bind封装
+			auto f = std::bind(m_pprotomap[i].fun, this, buf, sock);//将线程处理函数与this指针，缓冲区buf，以及sock绑定
+																	//this，buf都是堆区的内存，不会提前析构，sock可以直接复制
+			//f();
+			shared_ptr<function<void()>> sfun(new function<void()>(f));//创建全局对象，以免bind对象超过作用域失效
+
+			(*sfun)();
+
+			//my_task_thread_pool.mythread_pool<shared_ptr<function<void()>>>::push_task(sfun);//将封装好的处理交给进程队列
+																						
+			//
+			//fun();
+			//fun();
+			
 			return;
 		}
 		if (m_pprotomap[i].n_type == 0 && m_pprotomap[i].fun == 0)
@@ -675,3 +692,71 @@ void TCPkernel::dealtext(shared_ptr<char[]> buf, SOCKET sock)
 		i++;
 	}
 }
+
+
+
+
+//
+//template<class T>
+//my_circul_queue<T>::my_circul_queue(int length) :mlength(length)
+//{
+//	mhead = 0;
+//	mend = 0;
+//	ve_task_queue.resize(length);
+//}
+//
+//template<class T>
+//bool my_circul_queue<T>::push(T tmp)
+//{
+//	if (mhead - mend <= mlength)
+//	{
+//		ve_task_queue[mhead++ % mlength] = move(tmp);
+//	}
+//	else
+//	{
+//		return 0;
+//	}
+//	return 1;
+//}
+//
+//template<class T>
+//T my_circul_queue<T>::top()
+//{
+//	//循环确定队列非空
+//	while (mend == mhead);
+//	//输出当前位置的内容，并地址加一
+//	return ve_task_queue[mend++];
+//}
+//
+//template<class T>
+//void my_circul_queue<T>::pop()
+//{
+//	mend++;
+//}
+//
+//
+//
+//template<class T>
+//mythread_pool<T>::mythread_pool() :task_queue(10), max_thread(10), now_hav_run(2)
+//{
+//	ve_thread.push_back(thread(&mythread_pool<T>::thread_run, this));
+//}
+//
+//template<class T>
+//mythread_pool<T>::~mythread_pool()
+//{
+//
+//}
+//
+//
+//
+//template<class T>
+//void mythread_pool<T>::thread_run()
+//{
+//	while (1)
+//	{
+//		auto&& ite = task_queue.top();
+//		(*ite)();
+//		task_queue.pop();
+//	}
+//}

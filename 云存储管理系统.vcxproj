@@ -30,6 +30,7 @@
   <ItemGroup>
     <ClCompile Include="CMySql.cpp" />
     <ClCompile Include="ctcpnet.cpp" />
+    <ClCompile Include="mythreadpool.cpp" />
     <ClCompile Include="TCPkernel.cpp" />
     <ClCompile Include="云存储管理系统.cpp" />
   </ItemGroup>

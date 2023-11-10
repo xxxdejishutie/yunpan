@@ -660,9 +660,11 @@ void TCPkernel::dealtext(shared_ptr<char[]> buf, SOCKET sock)
 
 			//使用bind 函数 和function函数封装处理函数
 
+			//9.27直接使用bind封装
 			auto f = std::bind(m_pprotomap[i].fun, this, buf, sock);
-			function<void()> fun(f);
-			fun();
+			f();
+			//function<void()> fun(f);
+			//fun();
 
 			//释放share_ptr;
 			if(buf.use_count() >= 1)

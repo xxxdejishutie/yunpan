@@ -131,7 +131,6 @@ struct STRU_UPLOAD_FILEINFO_RQ
     int m_lFileSize;
     char m_szFileName[MAXSIZE];
     char m_szFileMD5[MAXSIZE];
-
 };
 
 
@@ -223,4 +222,9 @@ struct STRU_PROTOCOL_DELETE_FILE_RS
 
 #define DEBUG 0
 
+
+
+
 #endif // PACKDEF_H
+
+

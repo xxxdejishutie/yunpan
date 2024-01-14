@@ -5,6 +5,7 @@ using namespace std;
 int main()
 {
 	cout << "服务器正在启动" << endl;
+
 	Ikernel* k = TCPkernel::gettcpkernel();
 	cout << "文件存储位置为d:/disk" << endl;
 

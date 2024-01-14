@@ -1,5 +1,6 @@
 #include "TCPkernel.h"
 #include"mythreadpool.h"
+#include<thread>
 
 TCPkernel* TCPkernel::m_tcpkernel = new TCPkernel; //单例模式 ehan模式
 TCPkernel::TCPkernel()

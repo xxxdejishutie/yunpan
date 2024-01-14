@@ -33,6 +33,7 @@ struct uploadfileinfo
 };
 //单例模式，服务器只能有一个
 #define Maxsocle 300
+
 class TCPkernel :public Ikernel
 {
 private:
@@ -73,12 +74,12 @@ public:
 public:
 	bool Opensqlandnet();
 	void Closesqlandnet();
-
+	thread loadthread;//用于和代理服务器通信的线程
 
 	void dealtext(shared_ptr<char[]>, SOCKET);
 	static TCPkernel* gettcpkernel()
 	{
-		/*if (m_tcpkernel == NULL)
+		/*if (m_tcpkernel == NULL)=
 			m_tcpkernel = new TCPkernel;*/
 		return m_tcpkernel;
 	}

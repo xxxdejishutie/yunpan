@@ -61,12 +61,15 @@ mythread_pool<T>::mythread_pool()
 template<class T>
 mythread_pool<T>::~mythread_pool()
 {
+	//关闭线程
 
+	//释放资源
+	
 }
 	//void my_threadfun();
 template<class T>
 void mythread_pool<T>::thread_run(my_circul_queue<T>)
 {
-
+	//线程运行函数，不断从队列中取数据并处理
 }
 

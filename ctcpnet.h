@@ -5,6 +5,7 @@
 #include <process.h>
 #include <list>
 #include <map>
+#include<thread>
 #include"Inet.h"
 #include"TCPkernel.h"
 
@@ -24,6 +25,7 @@ public:
     static  unsigned _stdcall ThreadRecv(void *);
 private:
      SOCKET m_sock;
+     SOCKET MLoadUdpSock;//用于负载均衡的udp套接字
      HANDLE m_hThread;
      std::list<HANDLE> m_lstThread;
      std::map<unsigned int,SOCKET> m_mapIdToSock;
@@ -32,6 +34,15 @@ private:
      fd_set m_reset,m_allset;//select模型
      int m_arrClient[1024];//客户端套接字
      int m_connectnum;//已连接得数量
+
+
+     bool *RunFlag;//控制线程结束
+     int ConnCnt;//保存最大连接数
+     //mutex MCntMutex;//互斥访问最大连接数
+public:
+    thread loadthread;//用于和代理服务器通信的线程
+    friend void  loadfile(CTCPNet* pthis, char* ip, int port);
+
 };
 
 #endif // CTCPNET_H

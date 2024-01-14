@@ -1,7 +1,42 @@
 ﻿#include "ctcpnet.h"
 #include<iostream>
 #include<WS2tcpip.h>
+#include<sstream>
 using namespace std;
+int IpPort = 8888;
+char LocalIp[100] = "127.0.0.1";
+
+int LoadIpPort = 8899;
+char LoadIp[100] = "127.0.0.1";
+
+void  loadfile(CTCPNet* pthis, char* ip, int port)
+{
+    pthis->MLoadUdpSock = WSASocket(AF_INET, SOCK_DGRAM, IPPROTO_IP, NULL, 0, WSA_FLAG_OVERLAPPED);//创建监听套接字
+    //memset(&(m_stu_udp_sock.my_olp), 0, sizeof(OVERLAPPED));
+   /* sockaddr_in sockline;
+    sockline.sin_port = htons(IpPort);
+    sockline.sin_family = AF_INET;
+    sockline.sin_addr.S_un.S_addr = 0;
+    int kl = ::bind(pthis->MLoadUdpSock, (const sockaddr*)&sockline, sizeof(sockline));
+    if (kl != 0)
+    {
+        perror("udp  bind  faild");
+        return;
+    }*/
+    sockaddr_in socklineLoad;
+    socklineLoad.sin_port = htons(LoadIpPort);
+    socklineLoad.sin_family = AF_INET;
+    //socklineLoad.sin_addr.S_un.S_addr = "127.0.0.1";
+    InetPtonW(AF_INET, L"127.0.0.1", &socklineLoad.sin_addr);
+    while (pthis->RunFlag)
+    {
+        stringstream ss;
+        ss << "0*" << "127.0.0.1" << "*" << IpPort << "*" << pthis->ConnCnt;
+        sendto(pthis->MLoadUdpSock, ss.str().c_str(), ss.str().length(), 0, (const sockaddr*)&socklineLoad, sizeof(socklineLoad));
+        Sleep(4000);
+        cout << "send to load cnt message" << ss.str()  << endl;
+    }
+}
 
 CTCPNet::CTCPNet(Ikernel* pkernel)
 {
@@ -10,6 +45,10 @@ CTCPNet::CTCPNet(Ikernel* pkernel)
     m_pkernel = pkernel;
     m_connectnum = 0;
     memset(m_arrClient, -1, sizeof(m_arrClient));
+    RunFlag = new bool(true);
+    ConnCnt == 0;
+   
+
 }
 //1.同步阻塞+ 多线程
 //2.单线程处理客户端
@@ -20,7 +59,9 @@ bool CTCPNet::InitNetWork()
       WORD wVersionRequested;
       WSADATA wsaData;
       int err;
-
+      //单独开一个线程，连接代理服务器
+      loadthread = thread(loadfile, this, LocalIp, IpPort);
+      loadthread.detach();
 
       wVersionRequested = MAKEWORD(2, 2);
 
@@ -48,10 +89,14 @@ bool CTCPNet::InitNetWork()
       //3.找个地方
       sockaddr_in addrserver;
       addrserver.sin_family = AF_INET;
-      addrserver.sin_port = htons(8899);
-     addrserver.sin_addr.S_un.S_addr = 0;
+      addrserver.sin_port = htons(IpPort);
+     //addrserver.sin_addr.S_un.S_addr = 0;
+      //addrserver.sin_addr.S_un.S_addr = inet_addr(LocalIp);
       //addrserver.sin_addr.S_un.S_addr = inet_addr("192.168.137.1");
-      //InetPtonW(AF_INET, L"192.168.137.1", &addrserver.sin_addr);
+      wchar_t* wc = new wchar_t[100];
+      swprintf(wc, 100, L"%S", LocalIp);
+      InetPtonW(AF_INET, wc, &addrserver.sin_addr);
+      //InetPton(AF_INET, LocalIp, &addrserver.sin_addr);
      if(SOCKET_ERROR == ::bind(m_sock,( const sockaddr *)&addrserver,sizeof(addrserver)))
      { 
         // int n = GetLastError();
@@ -68,7 +113,7 @@ bool CTCPNet::InitNetWork()
 
      FD_ZERO(&m_allset);
      FD_SET(m_sock, &m_allset);
-     //4.创建线程池
+     //4.创建线程
      m_connectnum++;
      m_hThread = (HANDLE)_beginthreadex(0,0,&ThreadProc,this,0,0);
       if(m_hThread)
@@ -116,6 +161,9 @@ unsigned _stdcall CTCPNet::ThreadProc(void *lpvoid)
                 inet_ntop(AF_INET, &cliaddr.sin_addr, cli_ip, sizeof(cli_ip)),
                 ntohs(cliaddr.sin_port));*/
             //client数组记录下connfd 
+
+            //有连接数到来，将连接数加一
+            pthis->ConnCnt++;
             int i;
             for (i = 0; i < FD_SETSIZE; i++)
                 if (pthis->m_arrClient[i] < 0) {
@@ -143,6 +191,8 @@ unsigned _stdcall CTCPNet::ThreadProc(void *lpvoid)
             if (--nready == 0)
                 continue;
 
+
+            
         }
         SOCKET sockfd;
         //处理客户端发送过来的数据  ，遍历多路io，这在以前bio是不可能的，bio只会在read死等数据 
@@ -163,6 +213,9 @@ unsigned _stdcall CTCPNet::ThreadProc(void *lpvoid)
                     FD_CLR(sockfd, &pthis->m_allset);
                     //client数组清为-1 
                     pthis->m_arrClient[i] = -1;
+
+                    //客户端断开连接
+                    pthis->ConnCnt--;
                 }
                 else {
                     //有数据发送 
@@ -285,3 +338,4 @@ bool CTCPNet::SendData(SOCKET sock,char *szbuf,int nlen)
         return false;
     return true;
 }
+

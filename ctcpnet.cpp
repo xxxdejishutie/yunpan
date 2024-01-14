@@ -46,7 +46,7 @@ CTCPNet::CTCPNet(Ikernel* pkernel)
     m_connectnum = 0;
     memset(m_arrClient, -1, sizeof(m_arrClient));
     RunFlag = new bool(true);
-    ConnCnt == 0;
+    ConnCnt = 0;//2024.1.14 修改之前错误使用==
    
 
 }
